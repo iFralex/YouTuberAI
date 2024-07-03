@@ -1,9 +1,6 @@
-import { reteriveTranscript, getVideosIds } from "@/app/transcript"
 
-export default async function Result({ _params }) {
-    console.log("param", _params)
-    let videosIds = await getVideosIds(_params.id)
-    let videos = await reteriveTranscript(videosIds)
+export function Result({ videos }) {
+    
     return (
         <div style={{ padding: "20px" }}>
             {videos.map(video =>
