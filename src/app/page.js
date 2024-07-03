@@ -1,8 +1,8 @@
-import { reteriveTranscript, getVideosIds } from './transcript';
-import TextInputWithButton from './InputField';
+import { reteriveTranscript, getVideosIds } from './actions';
+import Form from './form';
 
 export default async function Home() {
   return <div>
-    <TextInputWithButton/>
+    <Form/>
   </div>
 }

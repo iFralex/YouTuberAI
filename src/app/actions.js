@@ -1,3 +1,5 @@
+"use server"
+
 export async function reteriveTranscript(videoIds) {
     let parsedTranscripts = []
     const YT_INITIAL_PLAYER_RESPONSE_RE = /ytInitialPlayerResponse\s*=\s*({.+?})\s*;\s*(?:var\s+(?:meta|head)|<\/script|\n)/;
@@ -70,11 +72,26 @@ function compareTracks(track1, track2) {
 
 
 export const getVideosIds = async channelId => {
-    console.log("channelId:", channelId)
-    let ids = await fetch("https://www.googleapis.com/youtube/v3/search?key=AIzaSyA4SxhPobYVbiNpM6To9xXFmfs8Pz-YuPE&channelId=" + channelId + "&part=id&order=date&maxResults=50")
+    let ids = await fetch("https://www.googleapis.com/youtube/v3/search?key=" + process.env.YOUTUBE_API_KEY + "&channelId=" + channelId + "&part=id&order=date&maxResults=10")
+    console.log(ids)
     if (!ids.ok)
         return []
     ids = await ids.json()
     console.log(ids)
     return ids.items.map(v => v.id.videoId)
+}
+
+export const getTranscripts = async (prevState, formData) => {
+    try {
+        console.log(process.env.YOUTUBE_API_KEY)
+        let videoIds = await getVideosIds(formData.get("channelId"))
+        let result = await reteriveTranscript(videoIds)
+        console.log("result: ", videoIds, result)
+        if (!result.length)
+            return { message: "The channel ID is not correct"}
+        return { message: "Success!", result: result}
+    } catch (e) {
+        console.log(e)
+        return { message: "Failled: " + e }
+    }
 }
