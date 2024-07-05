@@ -2,9 +2,9 @@
 export function Result({ videos }) {
     
     return (
-        <div style={{ padding: "20px" }}>
+        <>
             {videos.map(video =>
-            (<div style={{color: "hite"}}>
+            (<div>
                 <div>
                     <h1>{video.data.title}</h1>
                     {video.transcript.map(line =>
@@ -22,6 +22,6 @@ export function Result({ videos }) {
                 </div>
                 <div style={{ margin: "50px 0" }}></div>
             </div>))}
-        </div>
+        </>
     );
 }
