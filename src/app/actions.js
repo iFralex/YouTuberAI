@@ -73,25 +73,40 @@ function compareTracks(track1, track2) {
 
 export const getVideosIds = async channelId => {
     let ids = await fetch("https://www.googleapis.com/youtube/v3/search?key=" + process.env.YOUTUBE_API_KEY + "&channelId=" + channelId + "&part=id&order=date&maxResults=10")
-    console.log(ids)
+    console.log(ids.statusText, ids.status)
     if (!ids.ok)
-        return []
+        return { error: { code: ids.status, message: "Failled to get videos ids: " + ids.statusText } }
     ids = await ids.json()
     console.log(ids)
     return ids.items.map(v => v.id.videoId)
 }
 
-export const getTranscripts = async (prevState, formData) => {
+export const getTranscripts = async (channelId) => {
     try {
-        console.log(process.env.YOUTUBE_API_KEY)
-        let videoIds = await getVideosIds(formData.get("channelId"))
+        console.log(channelId, process.env.YOUTUBE_API_KEY)
+        let videoIds = await getVideosIds(channelId)
+        if (!videoIds.length)
+            return videoIds
         let result = await reteriveTranscript(videoIds)
         console.log("result: ", videoIds, result)
         if (!result.length)
-            return { message: "The channel ID is not correct"}
-        return { message: "Success!", result: result}
+            return result
+        return result
     } catch (e) {
         console.log(e)
         return { message: "Failled: " + e }
+    }
+}
+
+export const getChannelData = async channelId => {
+    try {
+        let data = await fetch("https://www.googleapis.com/youtube/v3/channels?part=snippet&id=" + channelId + "&fields=items%2Fsnippet%2Fthumbnails%2Fmedium,items%2Fsnippet%2Ftitle&key=" + process.env.YOUTUBE_API_KEY)
+        if (!data.ok)
+            return { error: { code: data.status, message: "Failled to get channel data: " + data.statusText } }
+        data = await data.json()
+        data = data.items[0].snippet
+        return { id: channelId, title: data.title, image: data.thumbnails.medium }
+    } catch (e) {
+        return { error: { code: "1", message: "Something wrong: " + e.message } }
     }
 }
