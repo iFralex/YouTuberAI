@@ -19,14 +19,13 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { LoadingSpinner } from "@/components/ui/loading"
-import { getChannelData } from './actions';
-import { Result } from "@/app/result"
+import { getChannelData, getChannelIdFromUsername } from './actions';
 import { CreateDialog } from "@/app/createScriptDialog"
 
 const formSchema = z.object({
-    channel_id: z.string().min(2, {
-        message: "Username must be at least 2 characters.",
-    }),
+    channel_id: z.string().min(10, {
+        message: "Value must be at least 10 characters.",
+    }).max(80, { message: "Value must be at most 80 characters.", }),
 })
 
 export function MainForm() {
@@ -40,14 +39,14 @@ export function MainForm() {
             channel_id: "UCHi6Q3Z-5oJUC691WLlSntA",
         },
     })
-    console.log(form)
+
     // 2. Define a submit handler.
     function onSubmit(values) {
         console.log(values)
         startTransition(async () => {
-            let res = await getChannelData(values.channel_id)
-            console.log("res: ", res)
-            if (!res.error)
+            let id = await getChannelId(values.channel_id)
+            let res = await getChannelData(id)
+            if (!res.error && id && !id.error)
                 setChannelData(res)
             else
                 form.setError("root.serverError", {
@@ -61,28 +60,45 @@ export function MainForm() {
     return (
         <div>
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <form onSubmit={form.handleSubmit(onSubmit)}>
+                    <div className="flex space-x-3 items-center">
                     <FormField
                         control={form.control}
                         name="channel_id"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Channel ID</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="xxxxxxxxxxxxx" {...field} />
-                                </FormControl>
-                                <FormDescription>
-                                    This is your public display name.
-                                </FormDescription>
+                                <Input placeholder="Channel url (e.g. youtube.com/@name...)" {...field} />
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
+                    <Button type="submit" disabled={pending}>{pending ? <LoadingSpinner /> : "Start"}</Button>
+                    </div>
                     <FormRootError />
-                    <Button type="submit" disabled={pending}>{pending ? <LoadingSpinner /> : "Submit"}</Button>
                 </form>
             </Form>
             {Object.keys(channelData).length > 0 && !pending && <CreateDialog data={channelData} />}
         </div>
     )
+}
+
+async function getChannelId(url) {
+    console.log("url", url)
+    url = url.split("?")[0]
+    // Verifica se corrisponde ai casi con @{username}
+    const usernameRegex = /youtube\.com\/@([a-zA-Z0-9_]+)/;
+    const channelIdRegex = /youtube\.com\/channel\/([a-zA-Z0-9_\-]+)/;
+    const directChannelIdRegex = /^[a-zA-Z0-9_\-]+$/;
+
+    if (usernameRegex.test(url)) {
+        let username = url.match(usernameRegex)[1];
+        return await getChannelIdFromUsername(username);
+    } else if (channelIdRegex.test(url)) {
+        let channelId = url.match(channelIdRegex)[1];
+        return channelId; // Restituisce il channelId
+    } else if (directChannelIdRegex.test(url)) {
+        return url; // Restituisce il channelId direttamente
+    } else {
+        return null; // Non corrisponde a nessun caso
+    }
 }

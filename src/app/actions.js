@@ -4,7 +4,7 @@ export async function reteriveTranscript(videoIds) {
     let parsedTranscripts = []
     const YT_INITIAL_PLAYER_RESPONSE_RE = /ytInitialPlayerResponse\s*=\s*({.+?})\s*;\s*(?:var\s+(?:meta|head)|<\/script|\n)/;
     for (let videoId of videoIds) {
-        console.log(videoId)
+        
         let response = await fetch('https://www.youtube.com/watch?v=' + videoId)
         let body = await response.text();
         const playerResponse = body.match(YT_INITIAL_PLAYER_RESPONSE_RE);
@@ -13,7 +13,7 @@ export async function reteriveTranscript(videoIds) {
             return;
         }
         let player = JSON.parse(playerResponse[1]);
-        console.log(player.videoDetails)
+        
         if (parseInt(player.videoDetails.lengthSeconds) < 150)
             continue
         const metadata = {
@@ -47,7 +47,7 @@ export async function reteriveTranscript(videoIds) {
             })
 
         // Use 'result' here as needed
-        console.log('EXTRACTED_TRANSCRIPT');
+
         parsedTranscripts.push({ transcript: parsedTranscript, data: metadata })
     }
     return parsedTranscripts
@@ -83,12 +83,10 @@ export const getVideosIds = async channelId => {
 
 export const getTranscripts = async (channelId) => {
     try {
-        console.log(channelId, process.env.YOUTUBE_API_KEY)
         let videoIds = await getVideosIds(channelId)
         if (!videoIds.length)
             return videoIds
         let result = await reteriveTranscript(videoIds)
-        console.log("result: ", videoIds, result)
         if (!result.length)
             return result
         return result
@@ -106,6 +104,20 @@ export const getChannelData = async channelId => {
         data = await data.json()
         data = data.items[0].snippet
         return { id: channelId, title: data.title, image: data.thumbnails.medium }
+    } catch (e) {
+        return { error: { code: "1", message: "Something wrong: " + e.message } }
+    }
+}
+
+export const getChannelIdFromUsername = async username => {
+    try {
+        let data = await fetch("https://youtube.googleapis.com/youtube/v3/search?part=id&maxResults=10&fields=items(id(channelId))&q=" + username + "&type=channel&key=" + process.env.YOUTUBE_API_KEY)
+        console.log(data)
+        if (!data.ok)
+            return { error: { code: data.status, message: "Failled to get channel id: " + data.statusText } }
+        data = await data.json()
+        console.log(data.items.forEach(i => console.log(i)), username)
+        return data.items[0].id.channelId
     } catch (e) {
         return { error: { code: "1", message: "Something wrong: " + e.message } }
     }
