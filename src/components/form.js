@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { LoadingSpinner } from "@/components/ui/loading"
-import { getChannelData, getChannelIdFromUsername } from './actions';
+import { getChannelData, getChannelIdFromUsername } from '../app/actions';
 import { CreateDialog } from "@/app/createScriptDialog"
 
 const formSchema = z.object({
@@ -36,7 +36,7 @@ export function MainForm() {
     const form = useForm({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            channel_id: "UCHi6Q3Z-5oJUC691WLlSntA",
+            channel_id: ""//"UCHi6Q3Z-5oJUC691WLlSntA",
         },
     })
 
@@ -58,21 +58,21 @@ export function MainForm() {
     }
 
     return (
-        <div>
+        <div className="w-full">
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)}>
-                    <div className="flex space-x-3 items-center">
-                    <FormField
-                        control={form.control}
-                        name="channel_id"
-                        render={({ field }) => (
-                            <FormItem>
-                                <Input placeholder="Channel url (e.g. youtube.com/@name...)" {...field} />
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <Button type="submit" disabled={pending}>{pending ? <LoadingSpinner /> : "Start"}</Button>
+                    <div className="flex md:space-x-3 flex-col md:flex-row items-center w-full">
+                        <FormField
+                            control={form.control}
+                            name="channel_id"
+                            render={({ field }) => (
+                                <FormItem className="w-full">
+                                    <Input className="text-lg h-[60px]" placeholder="Channel url (e.g. youtube.com/@name...)" {...field} />
+                                    <FormMessage/>
+                                </FormItem>
+                            )}
+                        />
+                        <Button type="submit" disabled={pending} className="px-8 py-7 text-lg font-bold w-full md:w-auto mt-2 md:mt-0">{pending ? <LoadingSpinner /> : "Vai"}</Button>
                     </div>
                     <FormRootError />
                 </form>
