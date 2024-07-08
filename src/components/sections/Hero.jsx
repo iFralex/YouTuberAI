@@ -19,7 +19,6 @@ export const Hero = () => {
 
             <div className="flex flex-col items-start space-y-3 sm:space-x-4 sm:space-y-0 sm:items-center sm:flex-row">
               <MainForm />
-
             </div>
             <div className="flex flex-wrap justify-start gap-5 mt-10 md:justify-between flex-col">
               <Vantage>
