@@ -43,7 +43,7 @@ export default function Home({ email }) {
                 <Testimonials data={reviews} id="testimonies" />
 
                 <SectionTitle id="pricing" preTitle="Prezzi" title="Acquista i credits" custom={true}>
-                    <Cta title={<span>1 CREDITO in regalo!</span>} desc="Prova Youtuber AI gratuitamente creando un account" buttonText="Registrati ora" buttonLink="/signup" />
+                    {email === undefined && <Cta title={<span>1 CREDITO in regalo!</span>} desc="Prova Youtuber AI gratuitamente creando un account" buttonText="Registrati ora" buttonLink="/signup" />}
                 </SectionTitle>
                 <Pricing data={prices} />
 

@@ -4,8 +4,8 @@ import ThemeChanger from "./DarkSwitch";
 import Image from "next/image"
 import { Disclosure } from "@headlessui/react";
 
-export const Navbar = ({ navigation = [], logged = false }) => {
-  let buttons = logged ?
+export const Navbar = ({ navigation = [], logged = 0 }) => {
+  let buttons = logged === -1 ? <></> : ( logged ?
     <Link href="/dashboard" className="px-6 py-2 text-white bg-indigo-600 rounded-md md:ml-5">
       Vai alla dashboard
     </Link> :
@@ -14,7 +14,7 @@ export const Navbar = ({ navigation = [], logged = false }) => {
     </Link>
       <Link href="/login" className="px-6 py-2 text-white bg-indigo-600 rounded-md md:ml-5">
         Accedi
-      </Link></>
+      </Link></>)
 
   return (
     <div className="w-full">
