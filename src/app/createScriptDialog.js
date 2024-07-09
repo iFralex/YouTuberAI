@@ -37,12 +37,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { LoadingSpinner } from "@/components/ui/loading"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { getTranscripts } from "./actions";
-import { Result } from "./result";
+import { Result, ScriptDialog } from "./scriptDialog";
 import { Scrollbar } from "@radix-ui/react-scroll-area";
 import {
     Table,
     TableBody,
-    TableCaption,
     TableCell,
     TableFooter,
     TableHead,
@@ -112,10 +111,10 @@ export function CreateDialog({ data }) {
                                     <AvatarImage src={data.image.url} />
                                     <AvatarFallback>Profile image</AvatarFallback>
                                 </Avatar>
-                                <span>{data.title}</span>
+                                <span>{data.youtuber}</span>
                             </DialogTitle>
                             <DialogDescription>
-                                Upload theme and sources to generate a script with the style of {data.title}
+                                Upload theme and sources to generate a script with the style of {data.youtuber}
                             </DialogDescription>
                             <Separator />
                         </DialogHeader>
@@ -193,29 +192,7 @@ export function CreateDialog({ data }) {
                         </Form>
                     </DialogContent>
                     :
-                    <DialogContent className="sm:max-w-[425px] max-h-[90%]">
-                        <DialogHeader>
-                            <DialogTitle className="flex items-center space-x-3">
-                                <Avatar>
-                                    <AvatarImage src={data.image.url} />
-                                    <AvatarFallback>Profile image</AvatarFallback>
-                                </Avatar>
-                                <span>{data.title}</span>
-                            </DialogTitle>
-                            <DialogDescription>
-                                Your script is ready!
-                            </DialogDescription>
-                            <Separator />
-                        </DialogHeader>
-                        <ScrollArea className="overflow-scroll max-h-[50vh]">
-                            <Result videos={result} />
-                            <Scrollbar orientation="vertical" />
-                        </ScrollArea>
-                        <DialogFooter>
-                            <Button onClick={() => triggerDownload(formattedResult(result), data.title + " transcripts.md")}>Download</Button>
-                            <Button onClick={() => navigator.clipboard.writeText(formattedResult(result))}>Copy</Button>
-                        </DialogFooter>
-                    </DialogContent>
+                    <ScriptDialog youtuber={data.youtuber} imageUrl={data.image.url} title="Titolo del video" />
                 )
             }
         </Dialog >
@@ -223,7 +200,7 @@ export function CreateDialog({ data }) {
 }
 
 const formattedResult = result => result.map(video =>
-    "# Title: " + video.data.title + "\n" +
+    "# Title: " + video.data.youtuber + "\n" +
     video.transcript.join("") +
     "\n\n ## Description\n" +
     video.data.description +

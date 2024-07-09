@@ -15,5 +15,5 @@ export default async function Home() {
 
 
 console.log(tokens)
-  return <Dashboard email={tokens?.decodedToken.email} />;
+  return <Dashboard id={tokens?.decodedToken.user_id} />;
 }

@@ -103,7 +103,7 @@ export const getChannelData = async channelId => {
             return { error: { code: data.status, message: "Failled to get channel data: " + data.statusText } }
         data = await data.json()
         data = data.items[0].snippet
-        return { id: channelId, title: data.title, image: data.thumbnails.medium }
+        return { id: channelId, youtuber: data.title, image: data.thumbnails.medium }
     } catch (e) {
         return { error: { code: "1", message: "Something wrong: " + e.message } }
     }
