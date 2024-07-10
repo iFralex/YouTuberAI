@@ -71,24 +71,24 @@ function compareTracks(track1, track2) {
 }
 
 
-export const getVideosIds = async channelId => {
-    let ids = await fetch("https://www.googleapis.com/youtube/v3/search?key=" + process.env.YOUTUBE_API_KEY + "&channelId=" + channelId + "&part=id&order=date&maxResults=10")
+export const getVideosIds = async (channelId, videosCount) => {
+    let ids = await fetch("https://www.googleapis.com/youtube/v3/search?key=" + process.env.YOUTUBE_API_KEY + "&channelId=" + channelId + "&part=id&order=date&maxResults=" + videosCount)
     console.log(ids.statusText, ids.status)
     if (!ids.ok)
         return { error: { code: ids.status, message: "Failled to get videos ids: " + ids.statusText } }
     ids = await ids.json()
-    console.log(ids)
     return ids.items.map(v => v.id.videoId)
 }
 
-export const getTranscripts = async (channelId) => {
+export const getRawTranscripts = async (channelId, videosCount) => {
     try {
-        let videoIds = await getVideosIds(channelId)
+        let videoIds = await getVideosIds(channelId, videosCount)
         if (!videoIds.length)
             return videoIds
         let result = await reteriveTranscript(videoIds)
         if (!result.length)
             return result
+     
         return result
     } catch (e) {
         console.log(e)
@@ -111,7 +111,7 @@ export const getChannelData = async channelId => {
 
 export const getChannelIdFromUsername = async username => {
     try {
-        let data = await fetch("https://youtube.googleapis.com/youtube/v3/search?part=id&maxResults=10&fields=items(id(channelId))&q=" + username + "&type=channel&key=" + process.env.YOUTUBE_API_KEY)
+        let data = await fetch("https://youtube.googleapis.com/youtube/v3/search?part=id&maxResults=1&fields=items(id(channelId))&q=" + username + "&type=channel&key=" + process.env.YOUTUBE_API_KEY)
         console.log(data)
         if (!data.ok)
             return { error: { code: data.status, message: "Failled to get channel id: " + data.statusText } }
@@ -121,4 +121,8 @@ export const getChannelIdFromUsername = async username => {
     } catch (e) {
         return { error: { code: "1", message: "Something wrong: " + e.message } }
     }
+}
+
+const getGeneratedTranscript = async (raw, theme, givenPrompt, duration, sources) => {
+
 }

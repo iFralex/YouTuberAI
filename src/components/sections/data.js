@@ -171,4 +171,15 @@ const navigation = [
   },
 ];
 
-export { navigation, benefitOne, benefitTwo, comparison, reviews, prices, faq };
+const footNavigation = [
+  {
+    text: "Home",
+    id: "",
+  },
+  {
+    text: "Dashboard",
+    id: "dashboard",
+  },
+]
+
+export { navigation, footNavigation, benefitOne, benefitTwo, comparison, reviews, prices, faq };

@@ -36,7 +36,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { LoadingSpinner } from "@/components/ui/loading"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { getTranscripts } from "./actions";
+import { getRawTranscripts } from "./actions";
 import { Result, ScriptDialog } from "./scriptDialog";
 import { Scrollbar } from "@radix-ui/react-scroll-area";
 import {
@@ -51,6 +51,7 @@ import {
 import { FileUp, FileX } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { cn } from "@/lib/utils";
+import { Slider } from "@/components/ui/slider";
 
 const formSchema = z.object({
     theme: z.string().min(2, {
@@ -63,12 +64,11 @@ const formSchema = z.object({
     }).max(600, {
         message: "Description must be at most 600 characters.",
     }),
-    minutesNumber: z.string().refine((val) => !Number.isNaN(parseInt(val, 10)), {
-        message: "Expected number, received a string"
-    }),
+    minutesNumber: z.number().min(2, { message: "Too short" }).max(20, { message: "Too long" }).default(10),
+    videosCount: z.number().min(5, { message: "Too fiew" }).max(50, { message: "Too much" }).default(15),
     files: z.array(z.object({ value: z.custom(), }),)
-    .min(1, { message: 'Please add at least one source.' })
-    .max(4, { message: 'Max sources: 4' })
+        .min(1, { message: 'Please add at least one source.' })
+        .max(4, { message: 'Max sources: 4' })
 })
 
 export function CreateDialog({ data }) {
@@ -78,20 +78,21 @@ export function CreateDialog({ data }) {
     const form = useForm({
         resolver: zodResolver(formSchema),
     })
-    const fileRef = form.register("file");
+    form.register("file");
 
     function onSubmit(values) {
-        console.log("valori ", values)
         startTransition(async () => {
-            let res = await getTranscripts(data.id)
-            console.log("res: ", res)
-            if (!res.error)
-                setResult(res)
-            else
+            let res = await getRawTranscripts(data.id, values.videosCount)
+            if (res.error) {
                 form.setError("root.serverError", {
                     type: res.error.code,
                     message: res.error.message
                 })
+                return
+            }
+            res = await getGeneratedTranscript(res)
+            if (!res.error)
+                setResult(res)
             return
         })
     }
@@ -155,14 +156,30 @@ export function CreateDialog({ data }) {
                                 <FormField
                                     control={form.control}
                                     name="minutesNumber"
-                                    render={({ field }) => (
+                                    render={({ field: { value, onChange } }) => (
                                         <FormItem>
-                                            <FormLabel>Duration in minutes</FormLabel>
+                                            <FormLabel>Duration in minutes: {value || 10}</FormLabel>
                                             <FormDescription>
                                                 How many minutes do you want your video? 1 minute = 1000 words.
                                             </FormDescription>
                                             <FormControl>
-                                                <Input type="number" min={1} max={25} placeholder="10..." {...field} />
+                                                <Slider defaultValue={[10]} min={2} max={20} step={1} onValueChange={n => onChange(n[0])} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="videosCount"
+                                    render={({ field: { value, onChange } }) => (
+                                        <FormItem>
+                                            <FormLabel>Videos number to analyze: {value || 15}</FormLabel>
+                                            <FormDescription>
+                                                Choose the number of videos to analyze. The higher the number, the more the end result will have the style of the creator, but the generation could take longer.
+                                            </FormDescription>
+                                            <FormControl>
+                                                <Slider defaultValue={[15]} min={5} max={50} step={1} onValueChange={n => onChange(n[0])} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -247,7 +264,7 @@ export const FileUpload = ({ form }) => {
         <div
             {...getRootProps({
                 className: cn(
-                    "p-3 mb-4 flex flex-col items-center justify-center w-full rounded-md cursor-pointer " + (isDragActive ? "bg-white" : "bg-[#ddf]")
+                    "p-3 mb-4 flex flex-col items-center justify-center w-full rounded-md cursor-pointer " + (isDragActive ? "bg-white" : "bg-[#ddf] dark:bg-[#113]")
                 ),
             })}
         >

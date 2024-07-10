@@ -4,7 +4,7 @@ import heroImg from "../../../public/img/hero.png";
 import { MainForm } from '@/components/form';
 import { BadgeCheck } from "lucide-react";
 
-export const Hero = () => {
+export const Hero = ({logged = true}) => {
   return (
     <>
       <Container className="flex flex-wrap ">
@@ -18,7 +18,7 @@ export const Hero = () => {
             </p>
 
             <div className="flex flex-col items-start space-y-3 sm:space-x-4 sm:space-y-0 sm:items-center sm:flex-row">
-              <MainForm />
+              <MainForm logged={logged} />
             </div>
             <div className="flex flex-wrap justify-start gap-5 mt-10 md:justify-between flex-col">
               <Vantage>

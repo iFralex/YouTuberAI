@@ -17,7 +17,7 @@ export default function Home({ email }) {
         <>{console.log("email", email)}
             <Navbar navigation={navigation} logged={email !== undefined} />
             <Container>
-                <Hero />
+                <Hero logged={email !== undefined} />
                 <SectionTitle
                     preTitle="INNOVAZIONE PER CREATOR"
                     title=" Perché Scegliere Youtuber AI

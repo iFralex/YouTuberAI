@@ -3,18 +3,31 @@ import Link from "next/link";
 import ThemeChanger from "./DarkSwitch";
 import Image from "next/image"
 import { Disclosure } from "@headlessui/react";
+import { auth } from "../firebase";
+import { signOut } from "firebase/auth";
+import { Button } from "../ui/button";
+import { useRouter } from "next/navigation";
 
 export const Navbar = ({ navigation = [], logged = 0 }) => {
-  let buttons = logged === -1 ? <></> : ( logged ?
-    <Link href="/dashboard" className="px-6 py-2 text-white bg-indigo-600 rounded-md md:ml-5">
-      Vai alla dashboard
-    </Link> :
-    <><Link href="/signup" className="px-6 py-2 text-white bg-indigo-600 rounded-md md:ml-5">
-      Iscriviti
-    </Link>
-      <Link href="/login" className="px-6 py-2 text-white bg-indigo-600 rounded-md md:ml-5">
-        Accedi
-      </Link></>)
+  const router = useRouter()
+  async function handleLogout() {
+    await signOut(auth);
+    await fetch("/api/logout");
+    router.push("/")
+  }
+  let buttons = logged === -1 ?
+    <button onClick={handleLogout} className="px-6 py-2 text-white bg-indigo-600 rounded-md md:ml-5">
+      Logout
+    </button> : (logged ?
+      <Link href="/dashboard" className="px-6 py-2 text-white bg-indigo-600 rounded-md md:ml-5">
+        Vai alla dashboard
+      </Link> :
+      <><Link href="/signup" className="px-6 py-2 text-white bg-indigo-600 rounded-md md:ml-5">
+        Iscriviti
+      </Link>
+        <Link href="/login" className="px-6 py-2 text-white bg-indigo-600 rounded-md md:ml-5">
+          Accedi
+        </Link></>)
 
   return (
     <div className="w-full">
