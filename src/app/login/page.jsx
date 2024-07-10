@@ -1,119 +1,114 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import Link from "next/link";
+import { startTransition, useTransition } from "react";
+import { auth, db } from "@/components/firebase";
 import { useRouter } from "next/navigation";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/components/firebase";
 import { Navbar } from "@/components/sections/Navbar";
+import { z } from "zod";
+
+import { Button } from "@/components/ui/button"
+import {
+    Form,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+    FormRootError,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Container } from "@/components/sections/Container";
+import Link from "next/link";
+
+export const LoginAccount = async (email, password) => {
+    const credential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+    );
+    const idToken = await credential.user.getIdToken();
+
+    await fetch("/api/login", {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        },
+    });
+    return credential.user.uid
+}
+
+const logInSchema = z
+    .object({
+        email: z.string().email("Invalid email address"),
+        password: z.string().min(6, "Password must be 6 characters long"),
+    })
 
 export default function Login() {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
+    const [pending, startTransition] = useTransition();
     const router = useRouter();
 
-    async function handleSubmit(event) {
-        event.preventDefault();
-        setError("");
+    const form = useForm({
+        resolver: zodResolver(logInSchema),
+    })
 
-        try {
-            const credential = await signInWithEmailAndPassword(
-                auth,
-                email,
-                password
-            );
-            const idToken = await credential.user.getIdToken();
-
-            let r = await fetch("/api/login", {
-                headers: {
-                    Authorization: `Bearer ${idToken}`,
-                },
-            });
-console.log(idToken, r)
-            router.push("/");
-        } catch (e) {
-            setError(e.message);
-        }
+    async function onSubmit(values) {
+        startTransition(async () => {
+            try {
+                await LoginAccount(values.email, values.password)
+                router.push("/dashboard");
+            } catch (e) {
+                setError(e.message);
+            }
+        })
     }
 
     return (
         <>
             <Navbar />
-            <main className="flex min-h-screen flex-col items-center justify-center p-8">
-                <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
-                    <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
-                        <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
-                            Log In
-                        </h1>
-                        <form
-                            onSubmit={handleSubmit}
-                            className="space-y-4 md:space-y-6"
-                            action="#"
-                        >
-                            <div>
-                                <label
-                                    htmlFor="email"
-                                    className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                >
-                                    Your email
-                                </label>
-                                <input
-                                    type="email"
-                                    name="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    id="email"
-                                    className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                    placeholder="name@company.com"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label
-                                    htmlFor="password"
-                                    className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                >
-                                    Password
-                                </label>
-                                <input
-                                    type="password"
-                                    name="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    id="password"
-                                    placeholder="••••••••"
-                                    className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                    required
-                                />
-                            </div>
-                            {error && (
-                                <div
-                                    className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
-                                    role="alert"
-                                >
-                                    <span className="block sm:inline">{error}</span>
+            <Container className="flex justify-center">
+                <Card className="w-[350px]">
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)}>
+                            <CardHeader>
+                                <CardTitle>Log in</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="flex flex-col space-y-3">
+                                    <FormField
+                                        control={form.control}
+                                        name="email"
+                                        render={({ field }) => (
+                                            <FormItem className="w-full">
+                                                <Label htmlFor="email">Your email address</Label>
+                                                <Input id="email" type="email" placeholder="example@name.com..." {...field} />
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="password"
+                                        render={({ field }) => (
+                                            <FormItem className="w-full">
+                                                <Label htmlFor="password">Password</Label>
+                                                <Input id="password" type="password" placeholder="··········" {...field} />
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
                                 </div>
-                            )}
-                            <button
-                                type="submit"
-                                className="w-full text-white bg-gray-600 hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-primary-800"
-                            >
-                                Enter
-                            </button>
-                            <p className="text-sm font-light text-gray-500 dark:text-gray-400">
-                                Don&apos;t have an account?{" "}
-                                <Link
-                                    href="/signup"
-                                    className="font-medium text-gray-600 hover:underline dark:text-gray-500"
-                                >
-                                    Sign up here
-                                </Link>
-                            </p>
+                                <FormRootError />
+                            </CardContent>
+                            <CardFooter className="grid grid-cols-1 text-right">
+                            <Button type="submit" disabled={pending} className="my-2">{pending ? <LoadingSpinner /> : "Create Account"}</Button>
+                                <p>Don't have an account yet? <Link href="/signup" className="text-link">Sign up</Link></p>
+                            </CardFooter>
                         </form>
-                    </div>
-                </div>
-            </main>
+                    </Form >
+                </Card >
+            </Container>
         </>
     );
 }

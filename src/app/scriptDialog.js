@@ -18,9 +18,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea, Scrollbar } from "@radix-ui/react-scroll-area";
+import { Badge } from "lucide-react";
 
-export const ScriptDialog = (props) => {
-    const { youtuber, imageUrl, script } = props.props
+export const ScriptDialog = ({ props }) => {
+    const { youtuber, imageUrl, script, date } = props
+
     return (
         <DialogContent className=" max-h-[90%] overflow-scroll">
             <DialogHeader>
@@ -32,7 +34,7 @@ export const ScriptDialog = (props) => {
                     <span>{script.title}</span>
                 </DialogTitle>
                 <DialogDescription>
-                    @{youtuber}
+                    <Badge>@{youtuber}</Badge> • {date}
                 </DialogDescription>
                 <Separator />
             </DialogHeader>
@@ -65,8 +67,8 @@ export const ScriptDialog = (props) => {
     )
 }
 
-export const ScriptPreview = (props) => {
-    const { youtuber, imageUrl, script } = props.props
+export const ScriptPreview = ({ props }) => {
+    const { youtuber, imageUrl, script, date } = props
     const shortScript = script.text.slice(0, 350) + " ..."
 
     return <Card className="w-full">
@@ -78,7 +80,7 @@ export const ScriptPreview = (props) => {
                 </Avatar>
                 <span>{script.title}</span>
             </CardTitle>
-            <CardDescription>@{youtuber}</CardDescription>
+            <CardDescription><Badge>@{youtuber}</Badge> • {date}</CardDescription>
         </CardHeader>
         <CardContent>
             <NewlineText text={shortScript} />
@@ -88,7 +90,7 @@ export const ScriptPreview = (props) => {
                 <DialogTrigger asChild>
                     <Button className="w-full">Dettagli</Button>
                 </DialogTrigger>
-                <ScriptDialog props={props.props} />
+                <ScriptDialog props={props} />
             </Dialog>
         </CardFooter>
     </Card >

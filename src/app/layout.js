@@ -5,7 +5,7 @@ import "./globals.css";
 import { Navbar } from "@/components/sections/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { PopupWidget }  from "@/components/sections/PopupWidget";
-import { navigation, reviews } from "@/components/sections/data";
+import { footNavigation } from "@/components/sections/data";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,7 +20,7 @@ export default function RootLayout({ children }) {
       <body className={inter.className}>
         <ThemeProvider attribute="class">
           <div>{children}</div>
-          <Footer navigation={navigation} />
+          <Footer navigation={footNavigation} />
           <PopupWidget />
         </ThemeProvider>
       </body>

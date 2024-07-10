@@ -21,6 +21,10 @@ import { Input } from "@/components/ui/input"
 import { LoadingSpinner } from "@/components/ui/loading"
 import { getChannelData, getChannelIdFromUsername } from '../app/actions';
 import { CreateDialog } from "@/app/createScriptDialog"
+import { Dialog, DialogTrigger } from "@radix-ui/react-dialog";
+import { DialogContent } from "./ui/dialog";
+import { Cta } from "./sections/Cta";
+import Link from "next/link";
 
 const formSchema = z.object({
     channel_id: z.string().min(10, {
@@ -28,7 +32,7 @@ const formSchema = z.object({
     }).max(80, { message: "Value must be at most 80 characters.", }),
 })
 
-export function MainForm() {
+export function MainForm({ logged = true }) {
     const [pending, startTransition] = useTransition();
     const [channelData, setChannelData] = useState({})
 
@@ -36,7 +40,7 @@ export function MainForm() {
     const form = useForm({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            channel_id: ""//"UCHi6Q3Z-5oJUC691WLlSntA",
+            channel_id: "UCHi6Q3Z-5oJUC691WLlSntA",
         },
     })
 
@@ -68,11 +72,13 @@ export function MainForm() {
                             render={({ field }) => (
                                 <FormItem className="w-full">
                                     <Input className="text-lg h-[60px]" placeholder="Channel url (e.g. youtube.com/@name...)" {...field} />
-                                    <FormMessage/>
+                                    <FormMessage />
                                 </FormItem>
                             )}
                         />
-                        <Button type="submit" disabled={pending} className="px-8 py-7 text-lg font-bold w-full md:w-auto mt-2 md:mt-0">{pending ? <LoadingSpinner /> : "Vai"}</Button>
+                        <LogginDialog logged={logged}>
+                            <Button type={logged ? "submit" : "button"} disabled={pending} className="px-8 py-7 text-lg font-bold w-full md:w-auto mt-2 md:mt-0">{pending ? <LoadingSpinner /> : "Vai"}</Button>
+                        </LogginDialog>
                     </div>
                     <FormRootError />
                 </form>
@@ -101,4 +107,26 @@ async function getChannelId(url) {
     } else {
         return null; // Non corrisponde a nessun caso
     }
+}
+
+const LogginDialog = ({ logged, children }) => {
+    return (
+        <Dialog>
+            {!logged ? <DialogTrigger asChild>
+                {children}
+            </DialogTrigger> :
+                <>{children}</>}
+            <DialogContent>
+                <Cta title={<span>1 CREDITO in regalo!</span>} desc="Prova Youtuber AI gratuitamente creando un account" buttonText="Registrati ora" buttonLink="/signup" />
+                <div className="grid grid-cols-2 gap-5">
+                    <Link href={"/login"}>
+                        <Button className="w-full">Accedi</Button>
+                    </Link>
+                    <Link href={"/signup"}>
+                        <Button className="w-full">Iscriviti</Button>
+                    </Link>
+                </div>
+            </DialogContent>
+        </Dialog>
+    )
 }
