@@ -40,7 +40,7 @@ export function MainForm({ logged = true }) {
     const form = useForm({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            channel_id: "UCHi6Q3Z-5oJUC691WLlSntA",
+            channel_id: ""//"UCHi6Q3Z-5oJUC691WLlSntA",
         },
     })
 
