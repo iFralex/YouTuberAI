@@ -25,6 +25,7 @@ import { Container } from "@/components/sections/Container";
 import { doc, setDoc } from "firebase/firestore";
 import { LoginAccount } from "../login/page";
 import Link from "next/link";
+import { LoadingSpinner } from "@/components/ui/loading";
 
 const signUpSchema = z
     .object({

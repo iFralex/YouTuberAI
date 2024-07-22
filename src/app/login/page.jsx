@@ -22,6 +22,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Container } from "@/components/sections/Container";
 import Link from "next/link";
+import { LoadingSpinner } from "@/components/ui/loading";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 export const LoginAccount = async (email, password) => {
     const credential = await signInWithEmailAndPassword(
@@ -59,7 +61,7 @@ export default function Login() {
                 await LoginAccount(values.email, values.password)
                 router.push("/dashboard");
             } catch (e) {
-                setError(e.message);
+                form.setError(e.message);
             }
         })
     }
@@ -102,7 +104,7 @@ export default function Login() {
                                 <FormRootError />
                             </CardContent>
                             <CardFooter className="grid grid-cols-1 text-right">
-                            <Button type="submit" disabled={pending} className="my-2">{pending ? <LoadingSpinner /> : "Create Account"}</Button>
+                            <Button type="submit" disabled={pending} className="my-2">{pending ? <LoadingSpinner /> : "Login"}</Button>
                                 <p>Don't have an account yet? <Link href="/signup" className="text-link">Sign up</Link></p>
                             </CardFooter>
                         </form>
