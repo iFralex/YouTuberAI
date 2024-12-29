@@ -36,7 +36,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { LoadingSpinner } from "@/components/ui/loading"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { getRawTranscripts } from "./actions";
+import { getGeneratedTranscript, getRawTranscripts } from "./actions";
 import { Result, ScriptDialog } from "./scriptDialog";
 import { Scrollbar } from "@radix-ui/react-scroll-area";
 import {
@@ -80,9 +80,39 @@ export function CreateDialog({ data }) {
     })
     form.register("file");
 
+    async function extractTextFromFiles(files) {
+        const textContents = await Promise.all(
+            files.map(async (file) => {
+                if (file.size > 1024 * 1024) {
+                    throw new Error(`File ${file.name} exceeds the 1 MB size limit.`);
+                }
+
+                if (!file.type.startsWith('text/')) {
+                    throw new Error(`File ${file.name} is not a supported text file.`);
+                }
+
+                try {
+                    return await (async (file) => {
+                        const reader = new FileReader();
+                        return new Promise((resolve, reject) => {
+                            reader.onload = () => resolve(reader.result);
+                            reader.onerror = () => reject(reader.error);
+                            reader.readAsText(file);
+                        });
+                    })(file);
+                } catch (error) {
+                    throw new Error(`Error reading file ${file.name}: ${error.message}`);
+                }
+            })
+        );
+
+        return textContents;
+    }
+
     function onSubmit(values) {
         startTransition(async () => {
             let res = await getRawTranscripts(data.id, values.videosCount)
+            console.log({ ...values, rawTranscripts: res })
             if (res.error) {
                 form.setError("root.serverError", {
                     type: res.error.code,
@@ -90,12 +120,18 @@ export function CreateDialog({ data }) {
                 })
                 return
             }
-            res = await getGeneratedTranscript(res)
-            if (!res.error)
-                setResult(res)
-            return
+            const generatedScript = await getGeneratedTranscript({ ...values, sources: await extractTextFromFiles(values.files.map(f => f.value)), rawTranscripts: res, files: undefined });
+            if (res.error) {
+                form.setError("root.serverError", {
+                    type: res.error.code,
+                    message: res.error.message
+                })
+                return
+            }
+            setResult(...(await generatedScript.json()))
         })
     }
+
     return (
         <Dialog defaultOpen={true}>
             {pending ?
@@ -209,7 +245,7 @@ export function CreateDialog({ data }) {
                         </Form>
                     </DialogContent>
                     :
-                    <ScriptDialog youtuber={data.youtuber} imageUrl={data.image.url} title="Titolo del video" />
+                    <ScriptDialog youtuber={data.youtuber} imageUrl={data.image.url} title="Titolo del video" script={result.text} mutabled={result.cache} />
                 )
             }
         </Dialog >
