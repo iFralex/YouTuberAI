@@ -6,13 +6,13 @@ const credential = JSON.parse(
 );
 
 const vertex_ai = new VertexAI({
-    project: "youtuber-ai",
-    location: "us-central1",
+    project: process.env.VERTEX_PROJECT_NAME,
+    location: process.env.VERTEX_LOCATION,
     googleAuthOptions: {
         credentials: {
-            client_email: credential.client_email,
-            client_id: credential.client_id,
-            private_key: credential.private_key,
+            client_email: process.env.VERTEX_AUTH_EMAIL,
+            client_id: process.env.VERTEX_AUTH_CLIENT_ID,
+            private_key: process.env.VERTEX_AUTH_PRIVATE_KEY
         },
     },
 });
