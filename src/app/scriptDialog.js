@@ -19,9 +19,25 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea, Scrollbar } from "@radix-ui/react-scroll-area";
 import { Badge } from "lucide-react";
+import { editTranscript, getGeneratedTranscript } from "./actions";
 
 export const ScriptDialog = ({ props }) => {
     const { youtuber, imageUrl, script, date } = props
+    const form = useForm({
+        resolver: zodResolver(z.object({
+            prompt: z.string().min(2, {
+                message: "Prompt must be at least 2 characters.",
+            }).max(250, {
+                message: "Prompt must be at most 250 characters.",
+            })
+        })),
+    })
+
+    function onSubmit(values) {
+        (async () => {
+            await editTranscript(props.mutabled, values.prompt)
+        })
+    }
 
     return (
         <DialogContent className=" max-h-[90%] overflow-scroll">
@@ -59,6 +75,24 @@ export const ScriptDialog = ({ props }) => {
                     <Scrollbar orientation="vertical" />
                 </ScrollArea>
             </div>
+            {props.mutabled && <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                    <FormField
+                        control={form.control}
+                        name="prompt"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Edit the script</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Prompt..." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <Button type="submit" classNamew-full>Regenerate Script</Button>
+                </form>
+            </Form>}
             <DialogFooter>
                 <Button onClick={() => triggerDownload(formattedResult(result), data.title + " transcripts.md")}>Download</Button>
                 <Button onClick={() => navigator.clipboard.writeText(formattedResult(result))}>Copy</Button>

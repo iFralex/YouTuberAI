@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@google-cloud/vertexai": "^1.9.2",
     "@headlessui/react": "^2.1.2",
     "@heroicons/react": "^2.1.4",
     "@hookform/resolvers": "^3.7.0",

@@ -4,7 +4,7 @@ export async function reteriveTranscript(videoIds) {
     let parsedTranscripts = []
     const YT_INITIAL_PLAYER_RESPONSE_RE = /ytInitialPlayerResponse\s*=\s*({.+?})\s*;\s*(?:var\s+(?:meta|head)|<\/script|\n)/;
     for (let videoId of videoIds) {
-        
+
         let response = await fetch('https://www.youtube.com/watch?v=' + videoId)
         let body = await response.text();
         const playerResponse = body.match(YT_INITIAL_PLAYER_RESPONSE_RE);
@@ -13,7 +13,7 @@ export async function reteriveTranscript(videoIds) {
             return;
         }
         let player = JSON.parse(playerResponse[1]);
-        
+
         if (parseInt(player.videoDetails.lengthSeconds) < 150)
             continue
         const metadata = {
@@ -85,10 +85,11 @@ export const getRawTranscripts = async (channelId, videosCount) => {
         let videoIds = await getVideosIds(channelId, videosCount)
         if (!videoIds.length)
             return videoIds
+        console.log("videoIds", videoIds)
         let result = await reteriveTranscript(videoIds)
         if (!result.length)
             return result
-     
+
         return result
     } catch (e) {
         console.log(e)
@@ -123,6 +124,80 @@ export const getChannelIdFromUsername = async username => {
     }
 }
 
-const getGeneratedTranscript = async (raw, theme, givenPrompt, duration, sources) => {
+export async function getGeneratedTranscript({ theme, description, minutesNumber, sources, rawTranscripts }) {
+    try {
+        const videoDetails = rawTranscripts.map(video => {
+            const { title, keywords, description: videoDescription } = video.data;
+            const transcriptText = video.transcript.join(' '); // Unisce tutte le frasi in un singolo blocco di testo
 
+            return `### Video: ${title}\nKeywords: ${keywords.join(', ')}\nDescription: ${videoDescription}\nTranscript: ${transcriptText}`;
+        }).join('\n\n');
+
+        return await fetch("/api/ai", {
+            method: "POST",
+            body: {
+                cache: {
+                    contents: [
+                        {
+                            text: `### Video Analysis:\n${videoDetails}\n\n`,
+                            description: ""
+                        },
+                        {
+                            text: `### Sources:\n${sources.map((s, i) => "Source " + (i + 1) + ": \n" + s).join('\n\n---------\n\n')}\n\n=======\n`,
+                            description: ""
+                        },
+                    ]
+                },
+                systemPrompt: `You are an expert YouTube scriptwriter. Your task is to create an original script based on the following specifications:
+
+CONTENT:
+- Main topic: ${theme}
+- Description: ${description}
+- Reference sources: [provided]
+- Target duration: ${minutesNumber}
+
+STYLE AND TONE:
+- Analyze these elements in the provided reference transcripts:
+  • Recurring narrative structure
+  • Characteristic linguistic patterns
+  • Narrative rhythm and dynamics
+  • Typical transition elements
+  • Characteristic opening/closing formulas
+
+TECHNICAL REQUIREMENTS:
+- Indicate main editing points
+- Suggest moments for graphics/b-roll
+- Specify timing for each section
+- Highlight keywords for SEO
+
+DELIVERABLE:
+The script must include:
+1. Initial hook
+2. Segmented main body
+3. Call-to-action
+4. YouTube-optimized description
+5. Suggested timestamps
+
+Please maintain the distinctive elements of the reference style while creating original and unique content.`
+            }
+        })
+    } catch (err) {
+        return { error: err }
+    }
+}
+
+export const editTranscript = async (cacheName, prompt) => {
+    try {
+        return await fetch("/api/ai", {
+            method: "POST",
+            body: {
+                promptInput: prompt,
+                cache: {
+                    name: cacheName
+                },
+            }
+        })
+    } catch (err) {
+        return { error: err }
+    }
 }

@@ -27,6 +27,7 @@ export async function Dashboard({ id }) {
         return item
     })
     const user = await getDoc(doc(db, "users", id));
+    if (!user.data()) return <Navbar logged={-1} />
     const { username, credits } = user.data()
 
     const onsubmit = () => {
